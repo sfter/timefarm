@@ -17,6 +17,18 @@ Install with python
 7. python get_tokens.py untuk mendapatkan token nya
 8. python timefarm.py
 
+Linux
+
+```
+pip3 install -r requirements.txt
+```
+
+or
+
+```
+python3 -m pip install -r requirements.txt
+```
+
 
 ## Features
 - Auto Upgrade
@@ -26,6 +38,22 @@ Install with python
 - Auto Handle Error
 - Auto Get Token / Refresh Token
 - Multi Account
+
+
+## Run
+
+windows
+```shell
+  python .\timefarm.py --task n --upgrade n
+  python .\timefarm.py --task ny--upgrade y
+```
+
+linux
+```shell
+  python3 .\timefarm.py --task n --upgrade n
+  python3 .\timefarm.py --task y --upgrade y
+```
+
 
 ## Screenshots
 
