@@ -12,9 +12,10 @@ Install with python
 2. Install Module (pip install requests colorama)
 3. Buka Bot TimeFarm di PC (Telegram Desktop)
 4. Jika sudah terbuka > Klik kanan Inspect
-5. Di Application > Session Storage > tg-mini.appxxxx >
-6. __telegram__initParams ambil tgwebappdata "query_idxxxx" tanpa kutip 
-7. py timefarm.py / py timefarm.py --task y/n
+5. Di Network cari v2 > buka payload > ambil init data
+6. Paste di query.txt
+7. python get_tokens.py untuk mendapatkan token nya
+8. python timefarm.py
 
 
 ## Features

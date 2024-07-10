@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timedelta, timezone
 import argparse
 import urllib.parse
-
+import os
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='TimeFarm BOT')
@@ -14,9 +14,7 @@ def parse_arguments():
     args = parser.parse_args()
 
     if args.task is None:
-        # Jika parameter --upgrade tidak diberikan, minta input dari pengguna
         task_input = input("Apakah Anda ingin auto claim task? (y/n, default n): ").strip().lower()
-        # Jika pengguna hanya menekan enter, gunakan 'n' sebagai default
         args.task = task_input if task_input in ['y', 'n'] else 'n'
     
     if args.upgrade is None:
@@ -28,35 +26,24 @@ def parse_arguments():
 args = parse_arguments()
 cek_task_enable = args.task
 cek_upgrade_enable = args.upgrade
-# Set headers sekali saja di awal
+
 headers = {
     'accept': '*/*',
     'accept-language': 'en-US,en;q=0.9',
-    'content-type': 'text/plain;charset=UTF-8',
+    'cache-control': 'no-cache',
+    'content-type': 'application/json',
     'origin': 'https://tg-tap-miniapp.laborx.io',
+    'pragma': 'no-cache',
     'priority': 'u=1, i',
     'referer': 'https://tg-tap-miniapp.laborx.io/',
-    'sec-ch-ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+    'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Microsoft Edge";v="126", "Microsoft Edge WebView2";v="126"',
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"Windows"',
     'sec-fetch-dest': 'empty',
     'sec-fetch-mode': 'cors',
     'sec-fetch-site': 'same-site',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
 }
-
-def get_access_token_and_info(query_data):
-    url = 'https://tg-bot-tap.laborx.io/api/v1/auth/validate-init'
-    try:
-        response = requests.post(url, headers=headers, data=query_data)
-        response.raise_for_status()  # Akan memicu error jika status bukan 200
-        return response.json()
-    except json.JSONDecodeError:
-        print(f"JSON Decode Error: Query Anda Salah")
-        return None
-    except requests.RequestException as e:
-        print(f"Request Error: {e}")
-        return None
 
 def cek_farming(token):
     url = 'https://tg-bot-tap.laborx.io/api/v1/farming/info'
@@ -84,6 +71,7 @@ def cek_task(token):
     }
     response = requests.get(url, headers=headers)
     return response.json()
+
 def submit_task(token, task_id):
     url = f'https://tg-bot-tap.laborx.io/api/v1/tasks/{task_id}/submissions'
     headers = {
@@ -101,7 +89,7 @@ def claim_task(token, task_id):
     }
     response = requests.post(url, headers=headers, json={})
     return response.json()
-start_time = datetime.now()
+
 def upgrade_level(token):
     url = 'https://tg-bot-tap.laborx.io/api/v1/me/level/upgrade'
     headers = {
@@ -120,7 +108,6 @@ def upgrade_level(token):
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0'
     }
     response = requests.post(url, headers=headers)
-    # print(response.json())
     return response.json()
 
 def auto_upgrade(token):
@@ -141,9 +128,6 @@ def auto_upgrade(token):
         else:
             print(Fore.GREEN + Style.BRIGHT + f"\r[ Upgrade ] : Upgrade berhasil, next..", flush=True)
 
-# Tambahkan pemanggilan fungsi ini di dalam loop utama jika pengguna memilih untuk auto upgrade
-
-
 def animated_loading(duration):
     frames = ["|", "/", "-", "\\"]
     end_time = time.time() + duration
@@ -153,6 +137,7 @@ def animated_loading(duration):
             print(f"\rMenunggu waktu claim berikutnya {frame} - Tersisa {remaining_time} detik         ", end="", flush=True)
             time.sleep(0.25)
     print("\rMenunggu waktu claim berikutnya selesai.                            ", flush=True)     
+
 def print_welcome_message():
     print(r"""
           
@@ -163,45 +148,25 @@ def print_welcome_message():
     print(Fore.CYAN + Style.BRIGHT + "Update Link: https://github.com/adearman/timefarm")
     print(Fore.YELLOW + Style.BRIGHT + "Free Konsultasi Join Telegram Channel: https://t.me/ghalibie")
     print(Fore.BLUE + Style.BRIGHT + "Buy me a coffee :) 0823 2367 3487 GOPAY / DANA")
-    print(Fore.RED + Style.BRIGHT + "NOT FOR SALE ! Ngotak dikit bang. Ngoding susah2 kau tinggal rename :)")
-    current_time = datetime.now()
-    up_time = current_time - start_time
-    days, remainder = divmod(up_time.total_seconds(), 86400)
-    hours, remainder = divmod(remainder, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    print(Fore.CYAN + Style.BRIGHT + f"Up time bot: {int(days)} hari, {int(hours)} jam, {int(minutes)} menit, {int(seconds)} detik")
+    print(Fore.RED + Style.BRIGHT + "NOT FOR SALE ! Ngotak dikit bang. Ngoding susah2 kau tinggal rename :)\n\n")
 
-def extract_user_details(query_line):
-    parts = query_line.split('&')
-    user_info_encoded = [part for part in parts if part.startswith('user=')][0]
-    user_info_encoded = user_info_encoded.split('=')[1]
-    user_info_json = urllib.parse.unquote(user_info_encoded)
-    user_info = json.loads(user_info_json)
-    return user_info.get('username', "Tidak Ada Username"), user_info.get('first_name', "Tidak Ada Firstname"), user_info.get('last_name', "Tidak Ada Lastname")
+ 
 
 def main():
     while True:
         print_welcome_message()
-        try:
-            with open('query.txt', 'r') as file:
-                queries = file.readlines()
-            
-            for query_data in queries:
-                username, first_name, last_name = extract_user_details(query_data.strip())
-
-                query_data = query_data.strip()
-                auth_response = get_access_token_and_info(query_data)
-                # user_info = extract_user_info(query_data)
-                # print(user_info)
-                token = auth_response['token']
-
-                balance_info = auth_response['balanceInfo']
-
-                # username = balance_info.get('user', {}).get('userInfo', {}).get('userName', "Tidak Ada Username")
-                # first_name = balance_info.get('user', {}).get('userInfo', {}).get('firstName', "Tidak Ada Firstname")
-                # last_name = balance_info.get('user', {}).get('userInfo', {}).get('lastName', "Tidak Ada Lastname")
-                print(Fore.CYAN + Style.BRIGHT + f"\n===== [ {first_name} {last_name} | {username} ] =====")
-                print(Fore.YELLOW + Style.BRIGHT + f"[ Balance ] : {int(balance_info['balance']):,}".replace(',', '.'))
+     
+        if os.path.exists('tokens.txt'):
+            with open('tokens.txt', 'r') as file:
+                tokens = [line.strip() for line in file.readlines()]
+      
+        for token in tokens:
+            try:
+                # Removed query_data and user details extraction
+                balance_info = cek_farming(token)  # Replace with actual balance info retrieval logic
+    
+                print(Fore.CYAN + Style.BRIGHT + f"\n===== [ Akun {tokens.index(token) + 1} ] =====")
+                print(Fore.YELLOW + Style.BRIGHT + f"[ Balance ] : {int(float(balance_info['balance'])):,}".replace(',', '.'))
                 if cek_upgrade_enable == 'y':
                     print(Fore.YELLOW + Style.BRIGHT + f"\r[ Upgrade ] : Upgrading Clock..", end="", flush=True)
                     auto_upgrade(token)
@@ -211,14 +176,11 @@ def main():
       
                     if tasks:
                         for task in tasks:
-                            # if "TimeFarm" in task['title']:
-                            #     continue  
                             if task.get('submission', {}).get('status') == 'CLAIMED':
                                 print(Fore.GREEN + Style.BRIGHT + f"\r[ Task ] : {task['title']} | Claimed                                               ", flush=True)
                             elif task.get('submission', {}).get('status') == 'COMPLETED':
                                 print(Fore.GREEN + Style.BRIGHT + f"\r[ Task ] : Claiming {task['title']}", flush=True)
                                 response = claim_task(token, task['id'])
-                                # print(response)
                                 if response is not None:
                                     if 'error' in response:
                                         if response['error']['message'] == "Failed to claim reward":
@@ -232,7 +194,6 @@ def main():
                                     print(Fore.YELLOW + Style.BRIGHT + f"\r[ Task ] : Submit task: {task['title']} | Already Submitted", flush=True)
                                 else:
                                     response = submit_task(token, task['id'])
-                                    # print(response)
                                     if response is not None:
                                         if 'error' in response:
                                             print(Fore.RED + Style.BRIGHT + f"\r[ Task ] : Submit task: {task['title']} | {response['error']['message']}", end="", flush=True)
@@ -241,7 +202,6 @@ def main():
                                     time.sleep(3)  # Tunggu 3 detik sebelum mengklaim
                                 print(f"\r[ Task ] : Claim task: {task['title']}", end="", flush=True)
                                 response = claim_task(token, task['id'])
-                                # print(response)
                                 if response is not None:
                                     if 'error' in response:
                                         if response['error']['message'] == "Failed to claim reward":
@@ -300,18 +260,25 @@ def main():
                                         if 'error' in start_farming_response:
                                             if start_farming_response['error']['message'] == "Farming already started":
                                                 print(Fore.RED + Style.BRIGHT + f"\r[ Farming ] : Farming Already Started", flush=True)
-                                        else:
-                                            print(Fore.RED + Style.BRIGHT + f"\r[ Farming ] : Gagal Start Farming", flush=True)
+                                            else:
+                                                print(Fore.RED + Style.BRIGHT + f"\r[ Farming ] : Gagal Start Farming", flush=True)
                                 else:
                                     print(Fore.YELLOW + Style.BRIGHT + f"\r[ Farming ] : Farming Already Started", flush=True)                              
-                else:
-                    print(Fore.RED + Style.BRIGHT + f"\r[ Farming ] : Gagal Cek Farming", flush=True)
-                    continue
-
-            print(Fore.BLUE + Style.BRIGHT + f"\n==========SEMUA AKUN TELAH DI PROSES==========\n",  flush=True)    
-            animated_loading(300)            
-        except Exception as e:
-            print(f"An error occurred: {str(e)}")
+                        else:
+                            print(Fore.RED + Style.BRIGHT + f"\r[ Farming ] : Gagal Cek Farming", flush=True)
+                            continue
+                        # print(Fore.YELLOW + Style.BRIGHT + f"\r[ Refferal ] : Checking ...", end="", flush=True)
+                        # time.sleep(2)
+                        # refferal_response = cek_reff(token)
+                        # if refferal_response:
+                        #     print(Fore.GREEN + Style.BRIGHT + f"\r[ Refferal ] : {refferal_response['totalRefferal']}", flush=True)
+               
+            except Exception as e:
+                
+                print(f"An error occurred: {str(e)}")
+                time.sleep(5)
+        print(Fore.BLUE + Style.BRIGHT + f"\n==========SEMUA AKUN TELAH DI PROSES==========\n",  flush=True)    
+        animated_loading(3)     
 
 if __name__ == "__main__":
     main()
