@@ -45,7 +45,7 @@ python3 -m pip install -r requirements.txt
 windows
 ```shell
   python .\timefarm.py --task n --upgrade n
-  python .\timefarm.py --task n --upgrade y
+  python .\timefarm.py --task y --upgrade y
 ```
 
 linux
